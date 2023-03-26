@@ -10,15 +10,19 @@ from flask_login import UserMixin, login_user, LoginManager, login_required, cur
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
 from functools import wraps
 from flask_gravatar import Gravatar
+import os
+
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY')
 ckeditor = CKEditor(app)
 Bootstrap(app)
 
 # CONNECT TO DB
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
+# postgres://blog_db_fixl_user:LAIJWzsliMcAQYXMdrd0d6I0d33RGGwR@dpg-cgg67iceoogqfc08jsog-a.frankfurt-postgres.render.com/blog_db_fixl
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 # Flask login
@@ -46,9 +50,9 @@ class BlogPost(db.Model):
 
 class User(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(30), nullable=False)
-    email = db.Column(db.String(50), unique=True, nullable=False)
-    password = db.Column(db.String(50), nullable=False)
+    username = db.Column(db.String(50), nullable=False)
+    email = db.Column(db.String(250), unique=True, nullable=False)
+    password = db.Column(db.String(250), nullable=False)
     posts = db.relationship('BlogPost', back_populates='author')
     comments = db.relationship('Comment', back_populates='comment_author')
 
@@ -62,8 +66,8 @@ class Comment(db.Model):
     related_blog = relationship('BlogPost', back_populates='comments')
     comment = db.Column(db.Text, nullable=False)
 
-# with app.app_context():
-#    db.create_all()
+with app.app_context():
+    db.create_all()
 
 
 # safe_url
